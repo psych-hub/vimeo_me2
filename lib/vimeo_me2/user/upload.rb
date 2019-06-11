@@ -7,10 +7,10 @@ module VimeoMe2
       # @param [File] video A File that contains a valid video format
       def upload_video video, name: nil
         @video = video
+        @name = name || get_file_name
         @ticket = create_video
         start_upload
-        video = change_name_and_get_video(name)
-        return video
+        return VimeoMe2::Video.new(@token, @ticket['uri'])
       end
 
       # Upload a video to the authenticated account
@@ -42,8 +42,10 @@ module VimeoMe2
 
         # 3.4 Update
         def create_video
-          tus = {approach: 'tus', size: @video.size.to_s}
-          body = {upload: tus}
+          body = {
+            name: @name,
+            upload: { approach: 'tus', size: @video.size.to_s }
+          }
           post '/videos', body: body, code: 200
         end
 
